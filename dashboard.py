@@ -3,8 +3,9 @@ import plotly.graph_objects as go
 import pandas as pd
 import os
 import subprocess
-from datetime import datetime
-import dill  # <-- For loading the .pkl model
+from datetime import datetime, timedelta
+import dill
+import time
 
 # ---------------- CONFIG ----------------
 st.set_page_config(
@@ -13,7 +14,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- File Constants ---
 CSS_FILE = "style.css"
+TODAY_DATE = datetime.now()
+YESTERDAY_DATE = TODAY_DATE - timedelta(days=1)
+ATTENDANCE_FILE = f"{TODAY_DATE.strftime('%Y-%m-%d')}_attendance.csv"
+YESTERDAY_ATTENDANCE_FILE = f"{YESTERDAY_DATE.strftime('%Y-%m-%d')}_attendance.csv"
+MASTER_LIST_FILE = "cleaned_data.csv"
 
 # ---------------- LOAD CUSTOM CSS ----------------
 if os.path.exists(CSS_FILE):
@@ -21,6 +28,65 @@ if os.path.exists(CSS_FILE):
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 else:
     st.warning(f"CSS file not found. Create a '{CSS_FILE}' file for custom styling.")
+
+
+# --- ⭐ MODIFIED Helper function ---
+@st.cache_data
+def load_attendance_data(file_name):
+    if not os.path.exists(file_name):
+        return pd.DataFrame(columns=["Name", "Time", "Emotion"])
+    try:
+        # --- FIX: Added on_bad_lines='skip' to ignore malformed lines ---
+        df = pd.read_csv(file_name, on_bad_lines='skip')
+        
+        if 'Time' not in df.columns and 'Name' not in df.columns:
+            # Also add it here for the headerless case
+            df = pd.read_csv(file_name, header=None, names=["Name", "Time", "Emotion"], on_bad_lines='skip')
+        
+        # Ensure correct columns exist even if file is weird
+        if "Name" not in df.columns: df["Name"] = None
+        if "Time" not in df.columns: df["Time"] = None
+        if "Emotion" not in df.columns: df["Emotion"] = None
+            
+        return df
+        
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame(columns=["Name", "Time", "Emotion"])
+    except Exception as e:
+        st.error(f"Error loading {file_name}: {e}")
+        return pd.DataFrame(columns=["Name", "Time", "Emotion"])
+# --- ⭐ END OF MODIFIED SECTION ---
+
+
+# --- Helper function to get total student count ---
+@st.cache_resource
+def get_total_student_count(file_name):
+    if not os.path.exists(file_name):
+        st.warning(f"Master student file '{file_name}' not found. 'Total' and 'Absent' counts will be 0.")
+        return 0
+    try:
+        df = pd.read_csv(file_name)
+        return len(df)
+    except Exception as e:
+        st.error(f"Error loading master list {file_name}: {e}")
+        return 0
+
+# --- Helper function to format delta percentages ---
+def format_delta_percent(today_val, yesterday_val):
+    if yesterday_val == 0:
+        if today_val > 0:
+            return "↑ New"
+        else:
+            return None
+    
+    delta_percent = ((today_val - yesterday_val) / yesterday_val) * 100
+    
+    if delta_percent > 0:
+        return f"↑ {delta_percent:.0f}%"
+    elif delta_percent < 0:
+        return f"↓ {abs(delta_percent):.0f}%"
+    else:
+        return "0%"
 
 # ---------------- SIDEBAR ----------------
 with st.sidebar:
@@ -34,62 +100,102 @@ with st.sidebar:
 # ---------------- DASHBOARD PAGE ----------------
 if choice == "Dashboard":
     st.subheader("📊 Attendance Overview")
+    
+    # Load data
+    today_attendance_df = load_attendance_data(ATTENDANCE_FILE)
+    yesterday_attendance_df = load_attendance_data(YESTERDAY_ATTENDANCE_FILE)
+    total_students = get_total_student_count(MASTER_LIST_FILE)
+    
+    # Calculate today's metrics
+    present_count = today_attendance_df['Name'].nunique()
+    absent_count = total_students - present_count
+    
+    # Calculate yesterday's metrics
+    yesterday_present_count = yesterday_attendance_df['Name'].nunique()
+    yesterday_absent_count = total_students - yesterday_present_count
+    
+    # Get delta strings
+    present_delta_str = format_delta_percent(present_count, yesterday_present_count)
+    absent_delta_str = format_delta_percent(absent_count, yesterday_absent_count)
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("Present | Today", "145", "↑ 12%")
-    col2.metric("Absent | Today", "32", "↓ 5%")
-    col3.metric("Attendance | This Month", "87%", "↑ 4%")
+    col1.metric("Present | Today", f"{present_count}", delta=present_delta_str, delta_color="normal")
+    col2.metric("Absent | Today", f"{absent_count}", delta=absent_delta_str, delta_color="inverse")
+    col3.metric("Total Enrolled", f"{total_students}")
 
     st.markdown("---")
+    
+    st.subheader("📈 Daily Attendance Trend (Live from CSV)")
+    
+    if today_attendance_df.empty or 'Time' not in today_attendance_df.columns or today_attendance_df['Time'].isnull().all():
+        if not os.path.exists(ATTENDANCE_FILE):
+             st.info(f"No attendance file found for today ('{ATTENDANCE_FILE}').")
+             st.write("Run the 'Webcam Mode' to start generating attendance data.")
+        else:
+            st.info(f"Attendance file '{ATTENDANCE_FILE}' is empty or contains no valid time data. No data to plot yet.")
+    else:
+        try:
+            # Process the data
+            df_plot = today_attendance_df.copy().dropna(subset=['Time']) # Drop rows where Time is missing
+            df_plot['Hour'] = pd.to_datetime(df_plot['Time'], format='%H:%M:%S').dt.hour
+            hourly_counts = df_plot.groupby('Hour')['Name'].count().reset_index().rename(columns={'Name': 'Present'})
+            
+            all_hours = pd.DataFrame({'Hour': range(7, 19)}) # 7:00 to 18:00
+            hourly_data = pd.merge(all_hours, hourly_counts, on='Hour', how='left').fillna(0)
+            hourly_data['Present'] = hourly_data['Present'].astype(int)
+            hourly_data['Hour_str'] = hourly_data['Hour'].apply(lambda h: f"{h:02d}:00")
 
-    st.subheader("📈 Daily Attendance Trend")
-    time = ["08:00", "09:00", "10:00", "11:00", "12:00", "01:00", "02:00"]
-    present = [20, 30, 40, 25, 60, 80, 65]
-    absent = [5, 10, 12, 8, 7, 5, 9]
-    total = [25, 40, 52, 33, 67, 85, 74]
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=hourly_data['Hour_str'], 
+                y=hourly_data['Present'], 
+                mode='lines+markers', 
+                name='Present Students Marked', 
+                line=dict(color='#3B82F6', width=3)
+            ))
 
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=time, y=present, mode='lines+markers', name='Present', line=dict(color='#3B82F6', width=3)))
-    fig.add_trace(go.Scatter(x=time, y=absent, mode='lines+markers', name='Absent', line=dict(color='#EF4444', width=3)))
-    fig.add_trace(go.Scatter(x=time, y=total, mode='lines+markers', name='Total Students', line=dict(color='#A0AEC0', width=2, dash='dot')))
+            fig.update_layout(
+                template="plotly_dark",
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font_color="#F0F2F6",
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                xaxis=dict(gridcolor='#3E404C', title='Hour of Day'),
+                yaxis=dict(gridcolor='#3E404C', title='Students Marked Present')
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+            st.markdown("ℹ️ *This chart shows the number of students marked present **during** each hour, based on today's attendance file.*")
 
-    fig.update_layout(
-        template="plotly_dark",
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#F0F2F6",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        xaxis=dict(gridcolor='#3E404C'),
-        yaxis=dict(gridcolor='#3E404C')
-    )
-    st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error(f"❌ Error processing chart data: {e}")
+
+    # Auto-refresh loop
+    time.sleep(5)
+    st.rerun()
+
 
 # ---------------- ATTENDANCE SHEET ----------------
 elif choice == "Attendance Sheet":
     st.subheader("📋 Attendance Records")
 
-    today = datetime.now().strftime("%Y-%m-%d")
-    file_name = f"{today}_attendance.csv"
-
-    if os.path.exists(file_name):
-        try:
-            df = pd.read_csv(file_name)
-            st.dataframe(df, use_container_width=True)
-
-            col1, col2 = st.columns([1, 3])
-            with col1:
-                st.download_button(
-                    "⬇️ Download Attendance CSV",
-                    df.to_csv(index=False).encode(),
-                    f"{file_name}"
-                )
-        except pd.errors.EmptyDataError:
-            st.warning(f"⚠️ The attendance file '{file_name}' is empty.")
-        except Exception as e:
-            st.error(f"❌ Error reading file '{file_name}': {e}")
+    df_attendance = load_attendance_data(ATTENDANCE_FILE)
+    
+    if not os.path.exists(ATTENDANCE_FILE):
+         st.info(f"No attendance file found for today ('{ATTENDANCE_FILE}').")
+         st.write("Run the 'Webcam Mode' to start generating records.")
+    elif df_attendance.empty:
+        st.warning(f"⚠️ The attendance file '{ATTENDANCE_FILE}' is empty.")
     else:
-        st.info(f"No attendance file found for today ('{file_name}').")
-        st.write("Run the 'Webcam Mode' to start generating records.")
+        st.dataframe(df_attendance, use_container_width=True)
+        
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.download_button(
+                "⬇️ Download Attendance CSV",
+                df_attendance.to_csv(index=False).encode(),
+                f"{ATTENDANCE_FILE}"
+            )
 
 # ---------------- WEBCAM MODE ----------------
 elif choice == "Webcam Mode":
