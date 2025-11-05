@@ -177,13 +177,20 @@ except Exception as e:
     exit()
 
 # ---------- Camera Setup ----------
-video_capture = cv2.VideoCapture(0)
-if not video_capture.isOpened():
-    print("❌ Error: Camera not found or not accessible.")
-    print("Please check camera connections and permissions.")
-    exit()
+print("Attempting to open camera (index 0)...")
+video_capture = cv2.VideoCapture(0) # Try default camera
 
-print("Starting camera... Press 'q' to quit.")
+if not video_capture.isOpened():
+    print("⚠️ Camera 0 failed. Trying camera (index 1)...")
+    video_capture = cv2.VideoCapture(1) # Try alternate camera
+    
+    if not video_capture.isOpened():
+        print("❌ Error: Cannot open camera at index 0 or 1.")
+        print("Please check camera connections and permissions.")
+        print("Make sure no other app (Zoom, Teams) is using the camera.")
+        exit()
+
+print("✅ Camera opened successfully. Starting camera... Press 'q' to quit.")
 
 # ---------- Main Loop ----------
 while True:

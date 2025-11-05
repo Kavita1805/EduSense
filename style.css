@@ -1,0 +1,351 @@
+/* --- ROOT VARIABLES (Change your theme colors here) --- */
+:root {
+    --primary-bg: #0F1116;         /* Main app background */
+    --secondary-bg: #1E202A;     /* Sidebar and card background */
+    --widget-bg: #2A2C3A;         /* Input/button background */
+    --text-primary: #F0F2F6;       /* Main text */
+    --text-secondary: #A0AEC0;     /* Subtler text (labels, captions) */
+    --accent-color: #3B82F6;       /* Main accent (buttons, highlights) */
+    --border-color: #3E404C;
+    --border-radius: 12px;
+    --font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
+}
+
+/* --- GLOBAL STYLES --- */
+body, .stApp {
+    font-family: var(--font-family);
+}
+
+/* Main app container */
+[data-testid="stAppViewContainer"] {
+    background-color: var(--primary-bg);
+}
+
+/* Main content area */
+[data-testid="block-container"] {
+    padding: 2rem 3rem 3rem 3rem;
+}
+
+/* All text */
+.stMarkdown, .stText, .stInfo, .stWarning, .stError, .stSuccess {
+    color: var(--text-primary) !important;
+    font-family: var(--font-family);
+}
+
+/* Subheaders (Page Titles) */
+[data-testid="stSubheader"] {
+    color: var(--text-primary);
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+/* --- SIDEBAR --- */
+[data-testid="stSidebar"] {
+    background-color: var(--secondary-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 1.5rem;
+}
+
+[data-testid="stSidebar"] h1 {
+    color: var(--accent-color);
+    font-size: 1.8rem;
+}
+
+[data-testid="stSidebar"] .stMarkdown {
+    color: var(--text-secondary);
+}
+
+[data-testid="stSidebar"] .stCaption {
+    color: var(--text-secondary);
+}
+
+/* Sidebar Navigation (Radio Buttons) */
+[data-testid="stRadio"] label {
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    transition: all 0.2s ease-in-out;
+    background-color: var(--widget-bg);
+    border: 1px solid var(--border-color);
+}
+
+/* Selected nav item */
+[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+    border-color: var(--accent-color);
+    font-weight: 600;
+}
+
+/* Hide the little radio circle */
+[data-testid="stRadio"] input[type="radio"] {
+    display: none;
+}
+[data-testid="stRadio"] label > div:first-of-type {
+    display: none;
+}
+
+/* --- DASHBOARD METRIC CARDS --- */
+[data-testid="stMetric"] {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 25px 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Metric Label ("Present | Today") */
+[data-testid="stMetricLabel"] {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Metric Value ("145") */
+[data-testid="stMetricValue"] {
+    color: var(--text-primary);
+    font-size: 2.8rem;
+    font-weight: 700;
+}
+
+/* Metric Delta ("↑ 12%") */
+[data-testid="stMetricDelta"] {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* --- WIDGETS (Buttons, Inputs) --- */
+[data-testid="stButton"] button {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    transition: all 0.2s ease-in-out;
+}
+[data-testid="stButton"] button:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); /* Shadow of accent color */
+}
+[data-testid="stButton"] button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); /* Focus ring */
+}
+
+/* Text Input Box */
+[data-testid="stTextInput"] input {
+    background-color: var(--widget-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 12px 15px;
+}
+[data-testid="stTextInput"] input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* --- DATA & CHARTS --- */
+
+/* Dataframe */
+[data-testid="stDataFrame"] {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+/* Dataframe header */
+[data-testid="stDataFrame"] .col-header {
+    background-color: var(--widget-bg);
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+/* Dataframe cells */
+[data-testid="stDataFrame"] .data-row {
+    background-color: var(--secondary-bg);
+    color: var(--text-primary);
+}
+
+/* Plotly chart container */
+[data-testid="stPlotlyChart"] {
+    border-radius: var(--border-radius);
+    overflow: hidden; /* This makes the radius apply to the chart inside */
+}/* --- ROOT VARIABLES (Change your theme colors here) --- */
+:root {
+    --primary-bg: #0F1116;         /* Main app background */
+    --secondary-bg: #1E202A;     /* Sidebar and card background */
+    --widget-bg: #2A2C3A;         /* Input/button background */
+    --text-primary: #F0F2F6;       /* Main text */
+    --text-secondary: #A0AEC0;     /* Subtler text (labels, captions) */
+    --accent-color: #3B82F6;       /* Main accent (buttons, highlights) */
+    --border-color: #3E404C;
+    --border-radius: 12px;
+    --font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
+}
+
+/* --- GLOBAL STYLES --- */
+body, .stApp {
+    font-family: var(--font-family);
+}
+
+/* Main app container */
+[data-testid="stAppViewContainer"] {
+    background-color: var(--primary-bg);
+}
+
+/* Main content area */
+[data-testid="block-container"] {
+    padding: 2rem 3rem 3rem 3rem;
+}
+
+/* All text */
+.stMarkdown, .stText, .stInfo, .stWarning, .stError, .stSuccess {
+    color: var(--text-primary) !important;
+    font-family: var(--font-family);
+}
+
+/* Subheaders (Page Titles) */
+[data-testid="stSubheader"] {
+    color: var(--text-primary);
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+/* --- SIDEBAR --- */
+[data-testid="stSidebar"] {
+    background-color: var(--secondary-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 1.5rem;
+}
+
+[data-testid="stSidebar"] h1 {
+    color: var(--accent-color);
+    font-size: 1.8rem;
+}
+
+[data-testid="stSidebar"] .stMarkdown {
+    color: var(--text-secondary);
+}
+
+[data-testid="stSidebar"] .stCaption {
+    color: var(--text-secondary);
+}
+
+/* Sidebar Navigation (Radio Buttons) */
+[data-testid="stRadio"] label {
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    transition: all 0.2s ease-in-out;
+    background-color: var(--widget-bg);
+    border: 1px solid var(--border-color);
+}
+
+/* Selected nav item */
+[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+    border-color: var(--accent-color);
+    font-weight: 600;
+}
+
+/* Hide the little radio circle */
+[data-testid="stRadio"] input[type="radio"] {
+    display: none;
+}
+[data-testid="stRadio"] label > div:first-of-type {
+    display: none;
+}
+
+/* --- DASHBOARD METRIC CARDS --- */
+[data-testid="stMetric"] {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 25px 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Metric Label ("Present | Today") */
+[data-testid="stMetricLabel"] {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Metric Value ("145") */
+[data-testid="stMetricValue"] {
+    color: var(--text-primary);
+    font-size: 2.8rem;
+    font-weight: 700;
+}
+
+/* Metric Delta ("↑ 12%") */
+[data-testid="stMetricDelta"] {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* --- WIDGETS (Buttons, Inputs) --- */
+[data-testid="stButton"] button {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    transition: all 0.2s ease-in-out;
+}
+[data-testid="stButton"] button:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); /* Shadow of accent color */
+}
+[data-testid="stButton"] button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); /* Focus ring */
+}
+
+/* Text Input Box */
+[data-testid="stTextInput"] input {
+    background-color: var(--widget-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 12px 15px;
+}
+[data-testid="stTextInput"] input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* --- DATA & CHARTS --- */
+
+/* Dataframe */
+[data-testid="stDataFrame"] {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+/* Dataframe header */
+[data-testid="stDataFrame"] .col-header {
+    background-color: var(--widget-bg);
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+/* Dataframe cells */
+[data-testid="stDataFrame"] .data-row {
+    background-color: var(--secondary-bg);
+    color: var(--text-primary);
+}
+
+/* Plotly chart container */
+[data-testid="stPlotlyChart"] {
+    border-radius: var(--border-radius);
+    overflow: hidden; /* This makes the radius apply to the chart inside */
+}
