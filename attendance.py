@@ -130,12 +130,8 @@ def load_face_encoding(path):
 # --- Define paths to known faces ---
 # It's better to put images in a subfolder like 'known_faces'
 known_face_paths = {
-    "Jane": "jane.jpg",
     "Kavitha": "kavitha.jpg",
     "Neha": "neha.jpg",
-    "Taha": "taha.jpg",
-    "Rahul": "rahul.jpg",
-    "Shreyas": "Shreyas .jpg",
     "Kaashif": "kaashif.jpg",
     "Naggie": "naggie.jpg",
 }
